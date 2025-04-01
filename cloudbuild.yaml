@@ -1,0 +1,7 @@
+steps:
+  # Step 1: Push the pre-built Docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/my-mvc-app:$SHORT_SHA']
+
+images:
+  - 'gcr.io/$PROJECT_ID/my-mvc-app:$SHORT_SHA'
