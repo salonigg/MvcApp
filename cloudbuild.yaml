@@ -1,7 +1,15 @@
 steps:
-  # Step 1: Push the pre-built Docker image to Google Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/my-mvc-app:$SHORT_SHA']
+  # Step 1: Authenticate Docker with Google Cloud
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["login", "-u", "oauth2accesstoken", "-p", "$(gcloud auth print-access-token)", "us-central1-docker.pkg.dev"]
+
+  # Step 2: Build the Docker image using the existing Dockerfile
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "us-central1-docker.pkg.dev/azuredemoapp-452210/mvcapp/my-mvc-app:$SHORT_SHA", "."]
+
+  # Step 3: Push the Docker image to Google Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "us-central1-docker.pkg.dev/azuredemoapp-452210/mvcapp/my-mvc-app:$SHORT_SHA"]
 
 images:
-  - 'gcr.io/$PROJECT_ID/my-mvc-app:$SHORT_SHA'
+  - "us-central1-docker.pkg.dev/azuredemoapp-452210/mvcapp/my-mvc-app:$SHORT_SHA"

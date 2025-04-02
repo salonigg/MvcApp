@@ -1,0 +1,11 @@
+steps:
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        gcloud run deploy my-mvc-app \
+          --image=us-central1-docker.pkg.dev/azuredemoapp-452210/mvcapp/my-mvc-app:$SHORT_SHA \
+          --region=us-central1 \
+          --platform=managed \
+          --allow-unauthenticated
