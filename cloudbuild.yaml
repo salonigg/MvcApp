@@ -22,7 +22,7 @@ steps:
     args: [
       "build",
       "-t", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA",
-      "-t", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:build-$(date +%Y%m%d-%H%M%S)",
+      "-t", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$BUILD_ID",
       "."
     ]
 
@@ -31,8 +31,8 @@ steps:
     args: ["push", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA"]
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:build-$(date +%Y%m%d-%H%M%S)"]
+    args: ["push", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$BUILD_ID"]
 
 images:
   - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA"
-  - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:build-$(date +%Y%m%d-%H%M%S)"
+  - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$BUILD_ID"
