@@ -17,22 +17,22 @@ steps:
         gcloud auth activate-service-account --key-file=key.json
         gcloud auth configure-docker $_REGION-docker.pkg.dev
 
-  # Step 2: Build the Docker image
+  # Step 2: Build the Docker image with a unique tag
   - name: "gcr.io/cloud-builders/docker"
     args: [
       "build",
       "-t", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA",
-      "-t", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest",
+      "-t", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:build-$(date +%Y%m%d-%H%M%S)",
       "."
     ]
 
-  # Step 3: Push the image to Google Artifact Registry
+  # Step 3: Push the uniquely tagged image to Google Artifact Registry
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA"]
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["push", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest"]
+    args: ["push", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:build-$(date +%Y%m%d-%H%M%S)"]
 
 images:
   - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA"
-  - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest"
+  - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:build-$(date +%Y%m%d-%H%M%S)"
