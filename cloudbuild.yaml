@@ -8,13 +8,14 @@ options:
   logging: CLOUD_LOGGING_ONLY  # Ensure logs go to Cloud Logging only
 
 steps:
-  # Step 1: Authenticate Docker with Google Cloud
-  - name: "gcr.io/cloud-builders/docker"
+  # Step 1: Authenticate with Service Account
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "bash"
     args:
       - "-c"
       - |
-        echo "$(gcloud auth print-access-token)" | docker login -u oauth2accesstoken --password-stdin $_REGION-docker.pkg.dev
+        gcloud auth activate-service-account --key-file=key.json
+        gcloud auth configure-docker $_REGION-docker.pkg.dev
 
   # Step 2: Build the Docker image
   - name: "gcr.io/cloud-builders/docker"
@@ -31,46 +32,6 @@ steps:
 
   - name: "gcr.io/cloud-builders/docker"
     args: ["push", "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest"]
-
-  # Step 4: Deploy to Cloud Run (Creates if not exists)
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        echo "Checking if Cloud Run service $_SERVICE_NAME exists..."
-        if ! gcloud run services describe $_SERVICE_NAME --region=$_REGION --format="value(status.url)" >/dev/null 2>&1; then
-          echo "Service $_SERVICE_NAME does not exist. Creating it..."
-          gcloud run deploy $_SERVICE_NAME \
-            --image=$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA \
-            --region=$_REGION \
-            --platform=managed \
-            --allow-unauthenticated \
-            --memory=512Mi \
-            --cpu=1 \
-            --timeout=300s \
-            --port=8080
-        else
-          echo "Service $_SERVICE_NAME exists. Updating deployment..."
-          gcloud run deploy $_SERVICE_NAME \
-            --image=$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA \
-            --region=$_REGION \
-            --platform=managed \
-            --allow-unauthenticated
-        fi
-
-  # Step 5: Tag and Push a Release Tag to GitHub
-  - name: "gcr.io/cloud-builders/git"
-    id: "tag_release"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        git config --global user.email "cloudbuild@google.com"
-        git config --global user.name "Cloud Build"
-        TAG_NAME="v$(date +%Y%m%d-%H%M%S)"
-        git tag -a $TAG_NAME -m "Automated release $TAG_NAME"
-        git push origin $TAG_NAME
 
 images:
   - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA"
