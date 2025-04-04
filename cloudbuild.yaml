@@ -5,12 +5,16 @@
   _REPO_NAME: "mvcapp"
 
 options:
-  logging: CLOUD_LOGGING_ONLY  # ✅ Cloud Logging enabled
+  logging: CLOUD_LOGGING_ONLY  # Ensure logs go to Cloud Logging only
 
 steps:
   # Step 1: Authenticate Docker with Google Cloud
   - name: "gcr.io/cloud-builders/docker"
-    args: ["login", "-u", "oauth2accesstoken", "-p", "$(gcloud auth print-access-token)", "$_REGION-docker.pkg.dev"]
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        echo "$(gcloud auth print-access-token)" | docker login -u oauth2accesstoken --password-stdin $_REGION-docker.pkg.dev
 
   # Step 2: Build the Docker image
   - name: "gcr.io/cloud-builders/docker"
