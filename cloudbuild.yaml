@@ -6,8 +6,8 @@ substitutions:
 
 steps:
   # Step 1: Authenticate Docker with Google Cloud
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["login", "-u", "oauth2accesstoken", "-p", "$(gcloud auth print-access-token)", "$_REGION-docker.pkg.dev"]
+  - name: "gcr.io/cloud-builders/gcloud"
+    args: ["auth", "configure-docker", "$_REGION-docker.pkg.dev"]
 
   # Step 2: Build the Docker image
   - name: "gcr.io/cloud-builders/docker"
@@ -59,9 +59,14 @@ steps:
       - "-c"
       - |
         TAG_NAME="v$(date +%Y%m%d-%H%M%S)"
+        git config --global user.email "cloudbuild@google.com"
+        git config --global user.name "Cloud Build"
         git tag -a $TAG_NAME -m "Automated release $TAG_NAME"
         git push origin $TAG_NAME
 
 images:
   - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:$SHORT_SHA"
   - "$_REGION-docker.pkg.dev/$_PROJECT_ID/$_REPO_NAME/$_SERVICE_NAME:latest"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
